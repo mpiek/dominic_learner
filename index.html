@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dominic challenge</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .quiz-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+    }
+    .options button {
+      aspect-ratio: 1/1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .options button:hover {
+      transform: scale(1.05);
+    }
+    .options button.correct {
+      background: #4CAF50 !important;
+    }
+    .options button.incorrect {
+      background: #FF5252 !important;
+    }
+    #timer {
+      font-size: 2rem;
+      margin: 1rem 0;
+    }
+    #score-display {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .time-select {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .time-select button {
+      padding: 0.8rem;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      transition: all 0.2s;
+    }
+    .time-select button:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    @media (max-width: 600px) {
+      .options {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .time-select {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>⏱️ Dominic challenge</h1>
+    <div id="timer">30s</div>
+    <div id="score-display">Correct: 0</div>
+    <div id="question" class="question"></div>
+    <div id="options" class="options"></div>
+    
+    <div id="time-select" class="time-select">
+      <button data-time="30">30 Seconds</button>
+      <button data-time="60">1 Minute</button>
+      <button data-time="180">3 Minutes</button>
+      <button data-time="300">5 Minutes</button>
+    </div>
+    
+    <button id="start-btn" style="display:none;">Start Quiz</button>
+  </div>
+
+  <script>
+    // Embedded dataset
+    const yourDataset = [
+    {
+      "question": "What represents Ozzy Osborn?",
+      "answer": "00"
+    },
+    {
+      "question": "What represents Beer?",
+      "answer": "00"
+    },
+    {
+      "question": "What represents Drinking?",
+      "answer": "00"
+    },
+    {
+      "question": "What represents Aristotle Aristotle?",
+      "answer": "01"
+    },
+    {
+      "question": "What represents Basketball?",
+      "answer": "01"
+    },
+    {
+      "question": "What represents Playing basketball?",
+      "answer": "01"
+    },
+    {
+      "question": "What represents Obi-wan?",
+      "answer": "02"
+    },
+    {
+      "question": "What represents Jedi cloak?",
+      "answer": "02"
+    },
+    {
+      "question": "What represents Lighsaber?",
+      "answer": "02"
+    },
+    {
+      "question": "What represents Oliver Cromwell?",
+      "answer": "03"
+    },
+    {
+      "question": "What represents musket?",
+      "answer": "03"
+    },
+    {
+      "question": "What represents aiming?",
+      "answer": "03"
+    },
+    {
+      "question": "What represents Otto Dix?",
+      "answer": "04"
+    },
+    {
+      "question": "What represents Dixi?",
+      "answer": "04"
+    },
+    {
+      "question": "What represents Shitting?",
+      "answer": "04"
+    },
+    {
+      "question": "What represents Odysseas Elytis?",
+      "answer": "05"
+    },
+    {
+      "question": "What represents Feather Quill?",
+      "answer": "05"
+    },
+    {
+      "question": "What represents Writing?",
+      "answer": "05"
+    },
+    {
+      "question": "What represents Otto Stern?",
+      "answer": "06"
+    },
+    {
+      "question": "What represents Zilveratoom?",
+      "answer": "06"
+    },
+    {
+      "question": "What represents looking stern?",
+      "answer": "06"
+    },
+    {
+      "question": "What represents Otto Grotewohl?",
+      "answer": "07"
+    },
+    {
+      "question": "What represents ball of wool?",
+      "answer": "07"
+    },
+    {
+      "question": "What represents Holding / Hugging?",
+      "answer": "07"
+    },
+    {
+      "question": "What represents Otto Hahn?",
+      "answer": "08"
+    },
+    {
+      "question": "What represents rooster?",
+      "answer": "08"
+    },
+    {
+      "question": "What represents feeding?",
+      "answer": "08"
+    },
+    {
+      "question": "What represents Old Nick?",
+      "answer": "09"
+    },
+    {
+      "question": "What represents horns?",
+      "answer": "09"
+    },
+    {
+      "question": "What represents on fire?",
+      "answer": "09"
+    },
+    {
+      "question": "What represents Aletta Ocean?",
+      "answer": "10"
+    },
+    {
+      "question": "What represents plastic implants?",
+      "answer": "10"
+    },
+    {
+      "question": "What represents Cop at a roundabout?",
+      "answer": "10"
+    },
+    {
+      "question": "What represents Alfred Adler?",
+      "answer": "11"
+    },
+    {
+      "question": "What represents eagle beak / emblem?",
+      "answer": "11"
+    },
+    {
+      "question": "What represents double dab?",
+      "answer": "11"
+    },
+    {
+      "question": "What represents Alexander Blanco?",
+      "answer": "12"
+    },
+    {
+      "question": "What represents cross?",
+      "answer": "12"
+    },
+    {
+      "question": "What represents programming?",
+      "answer": "12"
+    },
+    {
+      "question": "What represents Al Capone?",
+      "answer": "13"
+    },
+    {
+      "question": "What represents tommy gun?",
+      "answer": "13"
+    },
+    {
+      "question": "What represents Smoking?",
+      "answer": "13"
+    },
+    {
+      "question": "What represents Adam Driver?",
+      "answer": "14"
+    },
+    {
+      "question": "What represents soupbowl?",
+      "answer": "14"
+    },
+    {
+      "question": "What represents slurping from a spoon?",
+      "answer": "14"
+    },
+    {
+      "question": "What represents Albert Einstein?",
+      "answer": "15"
+    },
+    {
+      "question": "What represents blackboard?",
+      "answer": "15"
+    },
+    {
+      "question": "What represents putting out his tongue?",
+      "answer": "15"
+    },
+    {
+      "question": "What represents Arnold Schwarzenegger?",
+      "answer": "16"
+    },
+    {
+      "question": "What represents weights?",
+      "answer": "16"
+    },
+    {
+      "question": "What represents Flexing muscles?",
+      "answer": "16"
+    },
+    {
+      "question": "What represents Anish Giri?",
+      "answer": "17"
+    },
+    {
+      "question": "What represents pawn?",
+      "answer": "17"
+    },
+    {
+      "question": "What represents hands in pocket?",
+      "answer": "17"
+    },
+    {
+      "question": "What represents Adolf Hitler?",
+      "answer": "18"
+    },
+    {
+      "question": "What represents schwastika sign?",
+      "answer": "18"
+    },
+    {
+      "question": "What represents hitler groet?",
+      "answer": "18"
+    },
+    {
+      "question": "What represents Alfred Nobel?",
+      "answer": "19"
+    },
+    {
+      "question": "What represents nobel prize?",
+      "answer": "19"
+    },
+    {
+      "question": "What represents handshake?",
+      "answer": "19"
+    },
+    {
+      "question": "What represents Barack Obama?",
+      "answer": "20"
+    },
+    {
+      "question": "What represents presedential seal?",
+      "answer": "20"
+    },
+    {
+      "question": "What represents Handen uit de mauwen?",
+      "answer": "20"
+    },
+    {
+      "question": "What represents Bashah al-assad?",
+      "answer": "21"
+    },
+    {
+      "question": "What represents gasmask?",
+      "answer": "21"
+    },
+    {
+      "question": "What represents 4 fingers?",
+      "answer": "21"
+    },
+    {
+      "question": "What represents Bugs Bunny?",
+      "answer": "22"
+    },
+    {
+      "question": "What represents Carrot?",
+      "answer": "22"
+    },
+    {
+      "question": "What represents bunny pose?",
+      "answer": "22"
+    },
+    {
+      "question": "What represents Bill Clinton?",
+      "answer": "23"
+    },
+    {
+      "question": "What represents saxophone?",
+      "answer": "23"
+    },
+    {
+      "question": "What represents air saxophone?",
+      "answer": "23"
+    },
+    {
+      "question": "What represents Bob Dylan?",
+      "answer": "24"
+    },
+    {
+      "question": "What represents mondharmonica?",
+      "answer": "24"
+    },
+    {
+      "question": "What represents blowing in the wind?",
+      "answer": "24"
+    },
+    {
+      "question": "What represents BEldum?",
+      "answer": "25"
+    },
+    {
+      "question": "What represents Security cam?",
+      "answer": "25"
+    },
+    {
+      "question": "What represents spy?",
+      "answer": "25"
+    },
+    {
+      "question": "What represents Britney Spears?",
+      "answer": "26"
+    },
+    {
+      "question": "What represents spear?",
+      "answer": "26"
+    },
+    {
+      "question": "What represents dancing?",
+      "answer": "26"
+    },
+    {
+      "question": "What represents Bill Gates?",
+      "answer": "27"
+    },
+    {
+      "question": "What represents money/bills?",
+      "answer": "27"
+    },
+    {
+      "question": "What represents Throwing something in air?",
+      "answer": "27"
+    },
+    {
+      "question": "What represents Badr Hari?",
+      "answer": "28"
+    },
+    {
+      "question": "What represents wheelchair?",
+      "answer": "28"
+    },
+    {
+      "question": "What represents Boxing?",
+      "answer": "28"
+    },
+    {
+      "question": "What represents Benjamin Netanyahu?",
+      "answer": "29"
+    },
+    {
+      "question": "What represents israeli flag?",
+      "answer": "29"
+    },
+    {
+      "question": "What represents launching missle at innocent civilians?",
+      "answer": "29"
+    },
+    {
+      "question": "What represents Conan O'brein?",
+      "answer": "30"
+    },
+    {
+      "question": "What represents knife?",
+      "answer": "30"
+    },
+    {
+      "question": "What represents getting stabbed?",
+      "answer": "30"
+    },
+    {
+      "question": "What represents Charlie's Angels?",
+      "answer": "31"
+    },
+    {
+      "question": "What represents angle wing?",
+      "answer": "31"
+    },
+    {
+      "question": "What represents Flicking their hair?",
+      "answer": "31"
+    },
+    {
+      "question": "What represents Christian Bale?",
+      "answer": "32"
+    },
+    {
+      "question": "What represents mask?",
+      "answer": "32"
+    },
+    {
+      "question": "What represents Swining an axe?",
+      "answer": "32"
+    },
+    {
+      "question": "What represents Ciri of Cintra?",
+      "answer": "33"
+    },
+    {
+      "question": "What represents wolf medal?",
+      "answer": "33"
+    },
+    {
+      "question": "What represents rushing forward?",
+      "answer": "33"
+    },
+    {
+      "question": "What represents Charles Darwin?",
+      "answer": "34"
+    },
+    {
+      "question": "What represents pidgeon?",
+      "answer": "34"
+    },
+    {
+      "question": "What represents evolving?",
+      "answer": "34"
+    },
+    {
+      "question": "What represents Clint Eastwood?",
+      "answer": "35"
+    },
+    {
+      "question": "What represents cowboy hat?",
+      "answer": "35"
+    },
+    {
+      "question": "What represents Looking digusted?",
+      "answer": "35"
+    },
+    {
+      "question": "What represents Charlie Sheen?",
+      "answer": "36"
+    },
+    {
+      "question": "What represents cocaine?",
+      "answer": "36"
+    },
+    {
+      "question": "What represents sniffing like cocaine?",
+      "answer": "36"
+    },
+    {
+      "question": "What represents Che Guevara?",
+      "answer": "37"
+    },
+    {
+      "question": "What represents red star?",
+      "answer": "37"
+    },
+    {
+      "question": "What represents communist hat?",
+      "answer": "37"
+    },
+    {
+      "question": "What represents Christopher hitchens?",
+      "answer": "38"
+    },
+    {
+      "question": "What represents sigaret?",
+      "answer": "38"
+    },
+    {
+      "question": "What represents tying some kind of object at throut?",
+      "answer": "38"
+    },
+    {
+      "question": "What represents Chuck Norris?",
+      "answer": "39"
+    },
+    {
+      "question": "What represents boxing gloves?",
+      "answer": "39"
+    },
+    {
+      "question": "What represents Doing a karate kick?",
+      "answer": "39"
+    },
+    {
+      "question": "What represents Dominic O'Brien?",
+      "answer": "40"
+    },
+    {
+      "question": "What represents playing carts?",
+      "answer": "40"
+    },
+    {
+      "question": "What represents Reciting numbers?",
+      "answer": "40"
+    },
+    {
+      "question": "What represents David Attenborough?",
+      "answer": "41"
+    },
+    {
+      "question": "What represents magnifier?",
+      "answer": "41"
+    },
+    {
+      "question": "What represents Crawling in bush?",
+      "answer": "41"
+    },
+    {
+      "question": "What represents DBeaver?",
+      "answer": "42"
+    },
+    {
+      "question": "What represents wood?",
+      "answer": "42"
+    },
+    {
+      "question": "What represents making a dam?",
+      "answer": "42"
+    },
+    {
+      "question": "What represents Daniel Craig?",
+      "answer": "43"
+    },
+    {
+      "question": "What represents bowtie?",
+      "answer": "43"
+    },
+    {
+      "question": "What represents Playing poker?",
+      "answer": "43"
+    },
+    {
+      "question": "What represents Donald Duck?",
+      "answer": "44"
+    },
+    {
+      "question": "What represents sailor hat?",
+      "answer": "44"
+    },
+    {
+      "question": "What represents Quacking?",
+      "answer": "44"
+    },
+    {
+      "question": "What represents Desiderius Erasmus?",
+      "answer": "45"
+    },
+    {
+      "question": "What represents quill pen?",
+      "answer": "45"
+    },
+    {
+      "question": "What represents wring?",
+      "answer": "45"
+    },
+    {
+      "question": "What represents Dr Seuss?",
+      "answer": "46"
+    },
+    {
+      "question": "What represents red white striped hat?",
+      "answer": "46"
+    },
+    {
+      "question": "What represents take hat off?",
+      "answer": "46"
+    },
+    {
+      "question": "What represents David Grohl?",
+      "answer": "47"
+    },
+    {
+      "question": "What represents guitar?",
+      "answer": "47"
+    },
+    {
+      "question": "What represents playing air guitar?",
+      "answer": "47"
+    },
+    {
+      "question": "What represents David Hume?",
+      "answer": "48"
+    },
+    {
+      "question": "What represents turban?",
+      "answer": "48"
+    },
+    {
+      "question": "What represents Throwing books into a firepit?",
+      "answer": "48"
+    },
+    {
+      "question": "What represents Daniel naroditsky?",
+      "answer": "49"
+    },
+    {
+      "question": "What represents bullet?",
+      "answer": "49"
+    },
+    {
+      "question": "What represents talking russian accent?",
+      "answer": "49"
+    },
+    {
+      "question": "What represents Eeyore?",
+      "answer": "50"
+    },
+    {
+      "question": "What represents thistles?",
+      "answer": "50"
+    },
+    {
+      "question": "What represents depressed?",
+      "answer": "50"
+    },
+    {
+      "question": "What represents Eric Andr\u00e9?",
+      "answer": "51"
+    },
+    {
+      "question": "What represents cactus?",
+      "answer": "51"
+    },
+    {
+      "question": "What represents smashing desk?",
+      "answer": "51"
+    },
+    {
+      "question": "What represents Emil von Behring?",
+      "answer": "52"
+    },
+    {
+      "question": "What represents bear hat?",
+      "answer": "52"
+    },
+    {
+      "question": "What represents bear attack?",
+      "answer": "52"
+    },
+    {
+      "question": "What represents Eric Cartman?",
+      "answer": "53"
+    },
+    {
+      "question": "What represents hat?",
+      "answer": "53"
+    },
+    {
+      "question": "What represents middle finger?",
+      "answer": "53"
+    },
+    {
+      "question": "What represents Edsger Dijkstra?",
+      "answer": "54"
+    },
+    {
+      "question": "What represents blueprint?",
+      "answer": "54"
+    },
+    {
+      "question": "What represents following an algorithm?",
+      "answer": "54"
+    },
+    {
+      "question": "What represents Eevee?",
+      "answer": "55"
+    },
+    {
+      "question": "What represents pokeball?",
+      "answer": "55"
+    },
+    {
+      "question": "What represents cuddle?",
+      "answer": "55"
+    },
+    {
+      "question": "What represents Erwin Schr\u00f6dinger?",
+      "answer": "56"
+    },
+    {
+      "question": "What represents Holding 2 cats?",
+      "answer": "56"
+    },
+    {
+      "question": "What represents observering?",
+      "answer": "56"
+    },
+    {
+      "question": "What represents Edward Grey?",
+      "answer": "57"
+    },
+    {
+      "question": "What represents Mask?",
+      "answer": "57"
+    },
+    {
+      "question": "What represents emotionless?",
+      "answer": "57"
+    },
+    {
+      "question": "What represents Edmund Husserl?",
+      "answer": "58"
+    },
+    {
+      "question": "What represents those small glasses of his?",
+      "answer": "58"
+    },
+    {
+      "question": "What represents meditating?",
+      "answer": "58"
+    },
+    {
+      "question": "What represents Emperor Nero?",
+      "answer": "59"
+    },
+    {
+      "question": "What represents fire?",
+      "answer": "59"
+    },
+    {
+      "question": "What represents ashes to wind?",
+      "answer": "59"
+    },
+    {
+      "question": "What represents Scarlett O'Hara?",
+      "answer": "60"
+    },
+    {
+      "question": "What represents victorian dress?",
+      "answer": "60"
+    },
+    {
+      "question": "What represents Fainting?",
+      "answer": "60"
+    },
+    {
+      "question": "What represents Salvador Allende?",
+      "answer": "61"
+    },
+    {
+      "question": "What represents chilli (Chile)?",
+      "answer": "61"
+    },
+    {
+      "question": "What represents comingout of ear?",
+      "answer": "61"
+    },
+    {
+      "question": "What represents Sleeping Beauty?",
+      "answer": "62"
+    },
+    {
+      "question": "What represents rose?",
+      "answer": "62"
+    },
+    {
+      "question": "What represents Sleeping?",
+      "answer": "62"
+    },
+    {
+      "question": "What represents Sean Connery?",
+      "answer": "63"
+    },
+    {
+      "question": "What represents Holding a gun?",
+      "answer": "63"
+    },
+    {
+      "question": "What represents slap?",
+      "answer": "63"
+    },
+    {
+      "question": "What represents Salvador Dali?",
+      "answer": "64"
+    },
+    {
+      "question": "What represents tall elefant?",
+      "answer": "64"
+    },
+    {
+      "question": "What represents big eyes?",
+      "answer": "64"
+    },
+    {
+      "question": "What represents santa's elfs?",
+      "answer": "65"
+    },
+    {
+      "question": "What represents elf hat?",
+      "answer": "65"
+    },
+    {
+      "question": "What represents wrapping?",
+      "answer": "65"
+    },
+    {
+      "question": "What represents sylvester Stallone?",
+      "answer": "66"
+    },
+    {
+      "question": "What represents rambo knife?",
+      "answer": "66"
+    },
+    {
+      "question": "What represents holding x mouth?",
+      "answer": "66"
+    },
+    {
+      "question": "What represents Saul Goodman?",
+      "answer": "67"
+    },
+    {
+      "question": "What represents cheese?",
+      "answer": "67"
+    },
+    {
+      "question": "What represents Defending?",
+      "answer": "67"
+    },
+    {
+      "question": "What represents Saddam Hussein?",
+      "answer": "68"
+    },
+    {
+      "question": "What represents noose?",
+      "answer": "68"
+    },
+    {
+      "question": "What represents being hanged?",
+      "answer": "68"
+    },
+    {
+      "question": "What represents Sam Neill?",
+      "answer": "69"
+    },
+    {
+      "question": "What represents dinosaur?",
+      "answer": "69"
+    },
+    {
+      "question": "What represents Running from something?",
+      "answer": "69"
+    },
+    {
+      "question": "What represents georgia o'keiffe?",
+      "answer": "70"
+    },
+    {
+      "question": "What represents pottery?",
+      "answer": "70"
+    },
+    {
+      "question": "What represents making pottery?",
+      "answer": "70"
+    },
+    {
+      "question": "What represents Gustavus Adolphus?",
+      "answer": "71"
+    },
+    {
+      "question": "What represents red/yellow outfit?",
+      "answer": "71"
+    },
+    {
+      "question": "What represents lion's roar?",
+      "answer": "71"
+    },
+    {
+      "question": "What represents George Bush?",
+      "answer": "72"
+    },
+    {
+      "question": "What represents twin towers?",
+      "answer": "72"
+    },
+    {
+      "question": "What represents whisper in ear?",
+      "answer": "72"
+    },
+    {
+      "question": "What represents George Clooney?",
+      "answer": "73"
+    },
+    {
+      "question": "What represents espresso cut?",
+      "answer": "73"
+    },
+    {
+      "question": "What represents saying what else?",
+      "answer": "73"
+    },
+    {
+      "question": "What represents Gilles Deleuze?",
+      "answer": "74"
+    },
+    {
+      "question": "What represents mirror?",
+      "answer": "74"
+    },
+    {
+      "question": "What represents Jumping of a flat?",
+      "answer": "74"
+    },
+    {
+      "question": "What represents George Eliot?",
+      "answer": "75"
+    },
+    {
+      "question": "What represents ribon?",
+      "answer": "75"
+    },
+    {
+      "question": "What represents Writing a novel?",
+      "answer": "75"
+    },
+    {
+      "question": "What represents Geroge Soros?",
+      "answer": "76"
+    },
+    {
+      "question": "What represents burned hand?",
+      "answer": "76"
+    },
+    {
+      "question": "What represents Plotting?",
+      "answer": "76"
+    },
+    {
+      "question": "What represents Galileo galilei?",
+      "answer": "77"
+    },
+    {
+      "question": "What represents telescope?",
+      "answer": "77"
+    },
+    {
+      "question": "What represents looking through x?",
+      "answer": "77"
+    },
+    {
+      "question": "What represents Georg Hegel?",
+      "answer": "78"
+    },
+    {
+      "question": "What represents hail?",
+      "answer": "78"
+    },
+    {
+      "question": "What represents trancending?",
+      "answer": "78"
+    },
+    {
+      "question": "What represents Gabe Newel?",
+      "answer": "79"
+    },
+    {
+      "question": "What represents laser gun?",
+      "answer": "79"
+    },
+    {
+      "question": "What represents turning obese?",
+      "answer": "79"
+    },
+    {
+      "question": "What represents Ho?",
+      "answer": "80"
+    },
+    {
+      "question": "What represents dildo?",
+      "answer": "80"
+    },
+    {
+      "question": "What represents prostituting?",
+      "answer": "80"
+    },
+    {
+      "question": "What represents Hannah Arendt?",
+      "answer": "81"
+    },
+    {
+      "question": "What represents jewish star?",
+      "answer": "81"
+    },
+    {
+      "question": "What represents scattering ash?",
+      "answer": "81"
+    },
+    {
+      "question": "What represents Henri Bergson?",
+      "answer": "82"
+    },
+    {
+      "question": "What represents bowler hat?",
+      "answer": "82"
+    },
+    {
+      "question": "What represents walking up a mountain?",
+      "answer": "82"
+    },
+    {
+      "question": "What represents Hillary Clinton?",
+      "answer": "83"
+    },
+    {
+      "question": "What represents orange prison?",
+      "answer": "83"
+    },
+    {
+      "question": "What represents thrown in gail?",
+      "answer": "83"
+    },
+    {
+      "question": "What represents Humpty Dumpty?",
+      "answer": "84"
+    },
+    {
+      "question": "What represents egg?",
+      "answer": "84"
+    },
+    {
+      "question": "What represents Falling off wall?",
+      "answer": "84"
+    },
+    {
+      "question": "What represents Hermann Ebbinghaus?",
+      "answer": "85"
+    },
+    {
+      "question": "What represents calandar pages?",
+      "answer": "85"
+    },
+    {
+      "question": "What represents tryng to recall something,?",
+      "answer": "85"
+    },
+    {
+      "question": "What represents Homer Simpson?",
+      "answer": "86"
+    },
+    {
+      "question": "What represents doughnuts?",
+      "answer": "86"
+    },
+    {
+      "question": "What represents Eating?",
+      "answer": "86"
+    },
+    {
+      "question": "What represents Hugh Grant?",
+      "answer": "87"
+    },
+    {
+      "question": "What represents mistletoe?",
+      "answer": "87"
+    },
+    {
+      "question": "What represents proposing?",
+      "answer": "87"
+    },
+    {
+      "question": "What represents Hulk Hogan?",
+      "answer": "88"
+    },
+    {
+      "question": "What represents hulk mustache?",
+      "answer": "88"
+    },
+    {
+      "question": "What represents Wrestling?",
+      "answer": "88"
+    },
+    {
+      "question": "What represents Hikaru Nakamura?",
+      "answer": "89"
+    },
+    {
+      "question": "What represents chessboard?",
+      "answer": "89"
+    },
+    {
+      "question": "What represents looking up?",
+      "answer": "89"
+    },
+    {
+      "question": "What represents Nick offerman?",
+      "answer": "90"
+    },
+    {
+      "question": "What represents meat?",
+      "answer": "90"
+    },
+    {
+      "question": "What represents BBQ-ing?",
+      "answer": "90"
+    },
+    {
+      "question": "What represents Neil Armstrong?",
+      "answer": "91"
+    },
+    {
+      "question": "What represents spacesuit?",
+      "answer": "91"
+    },
+    {
+      "question": "What represents moonwalking?",
+      "answer": "91"
+    },
+    {
+      "question": "What represents Niels Bohr?",
+      "answer": "92"
+    },
+    {
+      "question": "What represents Boor?",
+      "answer": "92"
+    },
+    {
+      "question": "What represents sneezing?",
+      "answer": "92"
+    },
+    {
+      "question": "What represents Noam Chomsky?",
+      "answer": "93"
+    },
+    {
+      "question": "What represents lectern?",
+      "answer": "93"
+    },
+    {
+      "question": "What represents chomsky hands!?",
+      "answer": "93"
+    },
+    {
+      "question": "What represents Natalie Dormer?",
+      "answer": "94"
+    },
+    {
+      "question": "What represents crown?",
+      "answer": "94"
+    },
+    {
+      "question": "What represents Making duckface?",
+      "answer": "94"
+    },
+    {
+      "question": "What represents Nicky Erdman?",
+      "answer": "95"
+    },
+    {
+      "question": "What represents erwten?",
+      "answer": "95"
+    },
+    {
+      "question": "What represents jongleren?",
+      "answer": "95"
+    },
+    {
+      "question": "What represents Norbert Schild?",
+      "answer": "96"
+    },
+    {
+      "question": "What represents Schild?",
+      "answer": "96"
+    },
+    {
+      "question": "What represents Neurien/chagrijnig?",
+      "answer": "96"
+    },
+    {
+      "question": "What represents Nikolai gogol?",
+      "answer": "97"
+    },
+    {
+      "question": "What represents dead souls?",
+      "answer": "97"
+    },
+    {
+      "question": "What represents holding?",
+      "answer": "97"
+    },
+    {
+      "question": "What represents Nikki Haley?",
+      "answer": "98"
+    },
+    {
+      "question": "What represents volture?",
+      "answer": "98"
+    },
+    {
+      "question": "What represents peck?",
+      "answer": "98"
+    },
+    {
+      "question": "What represents Niculae Niculae?",
+      "answer": "99"
+    },
+    {
+      "question": "What represents perculator?",
+      "answer": "99"
+    },
+    {
+      "question": "What represents making coffee?",
+      "answer": "99"
+    }
+    ];
+
+    // Quiz variables
+    let score = 0;
+    let timeLeft = 30;
+    let quizTimer;
+    let currentQuestion;
+    let usedQuestions = [];
+
+    // DOM Elements
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const timerEl = document.getElementById("timer");
+    const scoreEl = document.getElementById("score-display");
+    const startBtn = document.getElementById("start-btn");
+    const timeSelectEl = document.getElementById("time-select");
+
+    // Fisher-Yates shuffle
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function updateTimer() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timerEl.textContent = `${minutes > 0 ? minutes + 'm ' : ''}${seconds}s`;
+      timerEl.style.color = timeLeft <= 5 ? "#ff6b6b" : "#4ecdc4";
+    }
+
+    function generateOptions(correctAnswer) {
+      const options = new Set([correctAnswer]);
+      
+      while (options.size < 6) {
+        let wrongAnswer;
+        if (!isNaN(correctAnswer)) {
+          wrongAnswer = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+        } else {
+          wrongAnswer = Math.random().toString(36).substring(2, 8);
+        }
+        if (wrongAnswer !== correctAnswer) options.add(wrongAnswer);
+      }
+      
+      return Array.from(options).sort(() => Math.random() - 0.5);
+    }
+
+    function showQuestion() {
+      // Get random unused question
+      if (usedQuestions.length === yourDataset.length) {
+        usedQuestions = [];
+      }
+      const availableQuestions = yourDataset.filter(q => !usedQuestions.includes(q));
+      currentQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+      usedQuestions.push(currentQuestion);
+      
+      questionEl.textContent = currentQuestion.question;
+      optionsEl.innerHTML = "";
+      
+      const options = generateOptions(currentQuestion.answer);
+      options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.addEventListener("click", () => checkAnswer(option));
+        optionsEl.appendChild(button);
+      });
+    }
+
+    function checkAnswer(selectedOption) {
+      // Disable all buttons after selection
+      const buttons = optionsEl.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === currentQuestion.answer) {
+          btn.classList.add('correct');
+        } else if (btn.textContent === selectedOption) {
+          btn.classList.add('incorrect');
+        }
+      });
+
+      if (selectedOption === currentQuestion.answer) {
+        score++;
+        scoreEl.textContent = `Correct: ${score}`;
+        questionEl.textContent = "✅ Correct!";
+      } else {
+        questionEl.textContent = `❌ The answer was: ${currentQuestion.answer}`;
+      }
+      
+      // Wait 1 second before next question
+      setTimeout(showQuestion, 1000);
+    }
+
+    function startQuiz(selectedTime) {
+      score = 0;
+      timeLeft = selectedTime;
+      usedQuestions = [];
+      scoreEl.textContent = "Correct: 0";
+      updateTimer();
+      startBtn.style.display = "none";
+      timeSelectEl.style.display = "none";
+      
+      // Show quiz elements
+      questionEl.style.display = "block";
+      optionsEl.style.display = "grid";
+      timerEl.style.display = "block";
+      scoreEl.style.display = "block";
+      
+      // Main countdown timer
+      clearInterval(quizTimer);
+      quizTimer = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+        if (timeLeft <= 0) {
+          endQuiz();
+        }
+      }, 1000);
+      
+      showQuestion();
+    }
+
+    function endQuiz() {
+      clearInterval(quizTimer);
+      questionEl.innerHTML = `🎯 Time's up!<br>Final Score: <span style="font-size:2em">${score}</span>`;
+      optionsEl.innerHTML = "";
+      
+      // Hide quiz elements
+      timerEl.style.display = "none";
+      scoreEl.style.display = "none";
+      
+      // Show time selection again
+      timeSelectEl.style.display = "grid";
+      
+      // Update time select buttons text
+      document.querySelectorAll('.time-select button').forEach(btn => {
+        btn.textContent = btn.textContent.replace("Play Again", "").trim();
+      });
+    }
+
+    // Initialize
+    document.querySelectorAll('.time-select button').forEach(button => {
+      button.addEventListener('click', () => {
+        const selectedTime = parseInt(button.getAttribute('data-time'));
+        startQuiz(selectedTime);
+      });
+    });
+    
+    // Hide quiz elements initially
+    questionEl.style.display = "none";
+    optionsEl.style.display = "none";
+    timerEl.style.display = "none";
+    scoreEl.style.display = "none";
+  </script>
+</body>
+</html>
